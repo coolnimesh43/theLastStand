@@ -2,29 +2,70 @@
 	var game=new Phaser.Game("100","100",Phaser.AUTO);
 	var playState={
 		preload : function(){
-			game.load.image('bird','images/bird.png');
-			game.load.image('bg','images/gamebg.jpg');
-			game.load.spritesheet('pipes','images/pipes.png',54,320);
+			game.load.image('level-1','images/level-1.jpg');
+			game.load.image('ship','images/blue_craft.png');
 		},
 		create : function(){
-			this.bg=game.add.tileSprite(0,0,1280,512,'bg');
-			this.bg.autoScroll(-150,0);
-			this.bird=game.add.sprite(game.world.centerX,game.world.centerY,'bird');
-			this.bird.anchor.setTo(0.5,0.5);
-			this.bird.scale.setTo(0.5,0.5);
-			game.physics.startSystem(Phaser.Physics.ARCADE);
-			game.physics.arcade.enable(this.bird);
-			this.bird.body.gravity.y=250;
-			var space=game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
-			space.onDown.add(this.jump,this);
-			this.makePipes();
+
+			game.physics.startSystem(Phaser.Physics.P2JS);
+  			game.physics.p2.gravity.y = 1
+
+			this.bg=game.add.image(0,0,'level-1');
+			this.spaceShip=game.add.sprite(game.world.centerX,game.world.centerY,'ship')
+			game.world.setBounds(0,0,2560,1600);
+			this.spaceShip.scale.setTo(0.3);
+
+			game.physics.p2.enable(this.spaceShip, false);
+			// game.physics.enable(this.spaceShip,Phaser.Physics.ARCADE);
+
+			this.spaceShip.body.collideWorldBounds=true;
+
+			game.camera.follow(this.spaceShip);
+			this.upKey=game.input.keyboard.addKey(Phaser.Keyboard.W);
+			this.leftKey=game.input.keyboard.addKey(Phaser.Keyboard.A);
+			this.rightKey=game.input.keyboard.addKey(Phaser.Keyboard.D);
+			this.downKey=game.input.keyboard.addKey(Phaser.Keyboard.S);
+
+
+			// this.bg.autoScroll(-150,0);
+			// this.bird=game.add.sprite(game.world.centerX,game.world.centerY,'bird');
+			// this.bird.anchor.setTo(0.5,0.5);
+			// this.bird.scale.setTo(0.5,0.5);
+			// game.physics.startSystem(Phaser.Physics.ARCADE);
+			// game.physics.arcade.enable(this.bird);
+			// this.bird.body.gravity.y=250;
+			// var space=game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
+			// space.onDown.add(this.jump,this);
+			// this.makePipes();
 		},
 		update : function(){
-			this.bird.angle+=2.5;
-			if(!this.bird.inWorld){
-				game.state.start("homeState");
+
+			this.spaceShip.body.velocity.x=0;
+			this.spaceShip.body.velocity.y=0;
+			if(this.leftKey.isDown){
+				this.spaceShip.body.velocity.x=-250;
 			}
-			this.game.physics.arcade.collide(this.bird,this.pipes,this.deathHandler,null,this);
+			if(this.rightKey.isDown){
+				this.spaceShip.body.velocity.x=250;
+			}
+			if(this.upKey.isDown){
+				this.spaceShip.body.velocity.y=-250;
+			}
+			if(this.downKey.isDown){
+				this.spaceShip.body.velocity.y=250;
+			}
+			//for spaceship rotation
+			this.rotate();
+
+			// this.bird.angle+=2.5;
+			// if(!this.bird.inWorld){
+			// 	game.state.start("homeState");
+			// }
+			// this.game.physics.arcade.collide(this.bird,this.pipes,this.deathHandler,null,this);
+		},
+		render:function(){
+			game.debug.cameraInfo(game.camera, 500, 32);
+   			game.debug.spriteCoords(this.spaceShip, 32, 32);
 		},
 		jump:function(){
 			this.bird.body.velocity.y=-150;
@@ -50,6 +91,9 @@
 		},
 		deathHandler:function(){
 			game.state.start("homeState");
+		},
+		rotate:function(){
+			this.spaceShip.body.rotation = game.physics.arcade.angleToPointer(this.spaceShip)+Math.PI/2;
 		}
 
 	};
