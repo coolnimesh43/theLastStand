@@ -4,18 +4,42 @@
 		preload : function(){
 			game.load.image('level-1','images/level-1.jpg');
 			game.load.image('ship','images/blue_craft.png');
+			game.load.image('bullet','images/bullet-1.png')
 		},
 		create : function(){
-
+			this.level=1;
+			this.bulletSpeed=100;
+			this.fireTime=0;
+			this.fireRate=10;
+			this.currentBullet=1;
+			// this.bulletCollisonGroup=game.physics.p2.createCollisionGroup()
 			game.physics.startSystem(Phaser.Physics.P2JS);
   			game.physics.p2.gravity.y = 1
+
+  			this.bullets=game.add.group();
+  			this.bullets.enableBody=true;
+  			this.bullets.physicsBodyType=Phaser.Physics.P2JS;
+  			this.bullets.createMultiple(50, 'bullet');
+		    this.bullets.setAll('checkWorldBounds', true);
+		    this.bullets.setAll('outOfBoundsKill', true);
 
 			this.bg=game.add.image(0,0,'level-1');
 			this.spaceShip=game.add.sprite(game.world.centerX,game.world.centerY,'ship')
 			game.world.setBounds(0,0,2560,1600);
 			this.spaceShip.scale.setTo(0.3);
-
 			game.physics.p2.enable(this.spaceShip, false);
+
+			//add ship trail animation
+			// this.shipTrail=game.add.emitter(this.spaceShip.x,this.spaceShip.y,100);
+			// this.shipTrail.width = 10;
+		 //    this.shipTrail.makeParticles('bullet');
+		 //    this.shipTrail.setXSpeed(30, -30);
+		 //    this.shipTrail.setYSpeed(200, 180);
+		 //    this.shipTrail.setRotation(50,-50);
+		 //    this.shipTrail.setAlpha(1, 0.01, 800);
+		 //    this.shipTrail.setScale(0.05, 0.4, 0.05, 0.4, 2000, Phaser.Easing.Quintic.Out);
+		 //    this.shipTrail.start(false, 5000, 10);
+
 			// game.physics.enable(this.spaceShip,Phaser.Physics.ARCADE);
 
 			this.spaceShip.body.collideWorldBounds=true;
@@ -54,9 +78,14 @@
 			if(this.downKey.isDown){
 				this.spaceShip.body.velocity.y=250;
 			}
+
+			//shoot bullets on mouse click
+			if(game.input.activePointer.isDown){
+				this.shootBullets();
+			}
 			//for spaceship rotation
 			this.rotate();
-
+			// this.shipTrail.x = this.spaceShip.x;
 			// this.bird.angle+=2.5;
 			// if(!this.bird.inWorld){
 			// 	game.state.start("homeState");
@@ -67,34 +96,36 @@
 			game.debug.cameraInfo(game.camera, 500, 32);
    			game.debug.spriteCoords(this.spaceShip, 32, 32);
 		},
-		jump:function(){
-			this.bird.body.velocity.y=-150;
-			game.add.tween(this.bird).to({angle:-40},100).start();
-		},
-		makePipes:function(){
-			this.pipesGenerator=game.time.events.loop(Phaser.Timer.SECOND*1.25,this.makePipe,this);
-			this.pipesGenerator.timer.start();
-			this.pipes=game.add.group();
-		},
-		makePipe:function(){
-			var pipeY=game.rnd.integerInRange(-100,100);
-			var pipeX=game.width;
-			var pipe2Position = pipeY + 430;
-			var pipe1=game.add.sprite(pipeX,pipe2Position,"pipes",0);
-			var pipe2=game.add.sprite(pipeX,pipeY,"pipes",1);
-			game.physics.arcade.enable(pipe1);
-			game.physics.arcade.enable(pipe2);
-			this.pipes.add(pipe1);
-			this.pipes.add(pipe2);
-
-			this.pipes.setAll('body.velocity.x',-200);
-		},
 		deathHandler:function(){
 			game.state.start("homeState");
 		},
 		rotate:function(){
 			this.spaceShip.body.rotation = game.physics.arcade.angleToPointer(this.spaceShip)+Math.PI/2;
-		}
+		},
+		shootBullets:function(){
+			// if(game.time.now > this.fireTime){
+			// 	var one = this.bullets.create(this.spaceShip.body.x,this.spaceShip.body.y,'bullet')
+   //                  one.reset(this.spaceShip.x, this.spaceShip.y);
+   //                  game.physics.p2.enable(one);
+   //                  one.lifespan = 3000;
+   //                  one.body.rotation = this.spaceShip.body.rotation;
+   //                  one.rotation = this.spaceShip.rotation - Phaser.Math.degToRad(90);
+   //                  one.body.velocity.x = Math.cos(one.rotation) * this.bulletSpeed + this.spaceShip.body.velocity.x;
+   //                  one.body.velocity.y = Math.sin(one.rotation) * this.bulletSpeed + this.spaceShip.body.velocity.y;
+   //                  this.fireTime+=this.fireRate;
+
+			// }
+			var bullet=this.bullets.getFirstExists(false);
+			console.log(bullet)
+			bullet.scale.setTo(0.1);
+			// bullet.body.rotation = this.spaceShip.body.rotation;
+			bullet.rotation=this.spaceShip.rotation-Phaser.Math.degToRad(90);
+			bullet.body.collideWorldBounds=false;
+			game.physics.p2.enable(bullet,false);
+			bullet.body.velocity.x=Math.cos(bullet.rotation) * this.bulletSpeed + this.spaceShip.body.velocity.x;
+			bullet.body.velocity.y=Math.sin(bullet.rotation) * this.bulletSpeed + this.spaceShip.body.velocity.y;
+
+		},
 
 	};
 	var homeState={
